@@ -7,11 +7,13 @@
 #define EM_CTL_CODE_ADD_DIALUP		0x4
 #define EM_CTL_CODE_CLEAR			0x5
 
+#define OUT_WORDS_COUNT 10
+
 struct ESDataExchangeStruct
 {
 	unsigned short inWord;
-	unsigned int outData; 			//весь сформированный к данному моменту времени выходной поток
-	int outErrCode; 				//код ошибки  	
+	unsigned int outWords[OUT_WORDS_COUNT]; 
+	int outErrCode; 		
 };
 
 const int RM_EM_CTL_CODE_ADD_FAX = __DIOTF(_DCMD_MISC, EM_CTL_CODE_ADD_FAX, ESDataExchangeStruct);
