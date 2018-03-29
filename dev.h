@@ -12,8 +12,8 @@
 struct ESDataExchangeStruct
 {
 	unsigned short inWord;
-	unsigned int outWords[OUT_WORDS_COUNT]; 
-	int outErrCode; 		
+	unsigned int outWords[WORDS_COUNT]; 
+	bool isOverflow; 		
 };
 
 const int RM_EM_CTL_CODE_ADD_FAX = __DIOTF(_DCMD_MISC, EM_CTL_CODE_ADD_FAX, ESDataExchangeStruct);
