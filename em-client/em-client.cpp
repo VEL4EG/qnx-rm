@@ -38,6 +38,34 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
+    error = devctl(fd, RM_EM_CTL_CODE_ADD_VOICE1, &data, sizeof(data), NULL);
+    if (error != EOK)
+    {
+      	printf("Error: %s\n", strerror(error));
+        exit(EXIT_FAILURE);
+    }
+
+    error = devctl(fd, RM_EM_CTL_CODE_ADD_VOICE2, &data, sizeof(data), NULL);
+    if (error != EOK)
+    {
+       	printf("Error: %s\n", strerror(error));
+        exit(EXIT_FAILURE);
+    }
+
+    error = devctl(fd, RM_EM_CTL_CODE_ADD_DIALUP, &data, sizeof(data), NULL);
+    if (error != EOK)
+    {
+        printf("Error: %s\n", strerror(error));
+        exit(EXIT_FAILURE);
+    }
+
+    error = devctl(fd, RM_EM_CTL_CODE_CLEAR, &data, sizeof(data), NULL);
+    if (error != EOK)
+    {
+        printf("Error: %s\n", strerror(error));
+        exit(EXIT_FAILURE);
+    }
+
     printf("out %d\n", data.outData);
 
     return (0);
