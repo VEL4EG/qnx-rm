@@ -23,7 +23,6 @@ int main(void)
 {
     int fd, error;
     ESDataExchangeStruct data;
-    data.inWord = 15;
 
     if((fd = open ("/dev/em-device", O_RDWR)) == -1)
     {
@@ -31,6 +30,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
     
+    data.inWord = 2;
     error = devctl(fd, RM_EM_CTL_CODE_ADD_FAX, &data, sizeof(data), NULL);
     if (error != EOK)
     {
@@ -38,6 +38,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
+    data.inWord = 3;
     error = devctl(fd, RM_EM_CTL_CODE_ADD_VOICE1, &data, sizeof(data), NULL);
     if (error != EOK)
     {
@@ -45,6 +46,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
+    data.inWord = 4;
     error = devctl(fd, RM_EM_CTL_CODE_ADD_VOICE2, &data, sizeof(data), NULL);
     if (error != EOK)
     {
@@ -52,6 +54,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
+    data.inWord = 5;
     error = devctl(fd, RM_EM_CTL_CODE_ADD_DIALUP, &data, sizeof(data), NULL);
     if (error != EOK)
     {
@@ -59,6 +62,7 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
+    data.inWord = 6;
     error = devctl(fd, RM_EM_CTL_CODE_CLEAR, &data, sizeof(data), NULL);
     if (error != EOK)
     {
@@ -66,7 +70,10 @@ int main(void)
         exit(EXIT_FAILURE);
     }
 
-    printf("out %d\n", data.outData);
+    for (int i = 0; i < OUT_WORDS_COUNT; ++i)
+    {
+    	printf(">> [%d] : %x\n", i + 1, data.outData[i]);
+    }
 
     return (0);
 }
