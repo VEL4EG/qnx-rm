@@ -13,6 +13,7 @@
 
 using namespace std;
 
+
 #define THREAD_POOL_PARAM_T dispatch_context_t
 
 static resmgr_connect_funcs_t    connect_funcs;
@@ -21,16 +22,16 @@ static iofunc_attr_t             attr;
 
 int errCount = 0;
 int currentIndex = 0;
-const unsigned int syncWord = 0b11110101 << 8;
-unsigned int words[WORDS_COUNT]; 
+const unt syncWord = 0b11110101 << 8;
+uint words[WORDS_COUNT]; 
 
 int	io_devctl(resmgr_context_t *ctp, io_devctl_t *msg, RESMGR_OCB_T *ocb);
-
-void makeFaxWord(ESDataExchangeStruct *data);
-void makeVoice1Word(ESDataExchangeStruct *data);
-void makeVoice2Word(ESDataExchangeStruct *data);
-void makeDialupword(ESDataExchangeStruct *data);
-void addWord();
+void addWord(ESDataExchangeStruct *data, uint (*makeWordFunc)(ushort inWord));
+inline uint getLastWord();
+uint makeFaxWord(ushort inWord);
+uint makeVoice1Word(ushort inWord);
+uint makeVoice2Word(ushort inWord);
+uint makeDialupword(ushort inWord);
 void clearWords();
 
 int main(int argc, char **argv)
@@ -156,109 +157,100 @@ int	io_devctl(resmgr_context_t *ctp, io_devctl_t *msg, RESMGR_OCB_T *ocb)
     return (_RESMGR_NPARTS(1));
 }
 
-void makeFaxWord(ESDataExchangeStruct *data)
+uint getLastWord()
 {
-	int inWord = data->inWord;
-	int tmpWord = (currentIndex == 0) ? 0 : words[currentIndex];
-	
-	    int address = 0b1100;
-	    tmpWord &= 0xC1FFFF00;
+	return (currentIndex == 0) ? 0 : words[currentIndex];
+}
 
-	    inWord &= 0b11111;
-	    inWord <<= 25;
-
-	    tmpWord |= address;
-	    tmpWord |= inWord;
-	    tmpWord |= synchWord;
-
-
+void addWord(ESDataExchangeStruct *data, uint (*makeWordFunc)(ushort inWord))
+{
+    uint newWord = makeWordFunc(data->inWord);
+    
     if (currentIndex > WORDS_COUNT)
     {
         clearWords();
-        words[0] = tmpWord;
+        words[0] = newWord;
         currentIndex = 1;
-        data->isOverflow = true;
+    
+        data->errorCode = -1;
 	    
         return;
     }
+        
+    words[currentIndex] = newWord;
+    currentIndex++;
     
-    data->isOverflow = false;
+    data->errorCode = 0;
 
     return;
 }
 
-void makeVoice1Word(ESDataExchangeStruct *data)
+uint makeFaxWord(ushort inWord)
 {
-	int address = 0b11000000;
-	int inWord = data->inWord;
-	int tmpWord = (currentIndex == 0) ? 0 : words[currentIndex];
+    int controlChannel = 0b1100;
+    int word = getLastWord();
 
-	tmpWord &= 0x7FFFFF00;
+    word &= 0xC1FFFF00;
+
+    inWord &= 0b11111;
+    inWord <<= 25;
+
+    word |= controlChannel;
+    word |= inWord;
+    word |= synchWord;
+    
+    return word;
+}
+
+uint makeVoice1Word(ushort inWord)
+{
+	int controlChannel = 0b11000000;
+    int word = getLastWord();
+
+	word &= 0x7FFFFF00;
 
 	inWord &= 0b1;
 	inWord <<= 31;
 
-	tmpWord |= address;
-	tmpWord |= inWord;
-	tmpWord |= sWord;
-
-	data->outData[index] = tmpWord;
+	word |= controlChannel;
+	word |= inWord;
+	word |= sWord;
+    
+    return word;
 }
 
-void makeVoice2Word(ESDataExchangeStruct *data)
+uint makeVoice2Word(ushort inWord)
 {
-	int sWord = *synchWord;
-	int address = 0b00110000;
-	int inWord = data->inWord;
-	int index = countIndex(data);
-	int tmpWord = 0;
-	if (index == 0)
-	{
-		tmpWord = data->outData[index];
-	}
-	else
-	{
-		tmpWord = data->outData[index];
-	}
+	int controlChannel = 0b00110000;
+    int word = getLastWord();
 
-	tmpWord &= 0xBFFFFFFF;
+	word &= 0xBFFFFFFF;
 
 	inWord &= 0b1;
 	inWord <<= 30;
 
-	tmpWord |= address;
-	tmpWord |= inWord;
-	tmpWord |= sWord;
+	word |= controlChannel;
+	word |= inWord;
+	word |= sWord;
 
-	data->outData[index] = tmpWord;
+    return word;
 }
 
-void makeDialupword(ESDataExchangeStruct *data)
+uint makeDialupWord(ushort inWord)
 {
-	int sWord = *synchWord;
-	int address = 0b11;
-	int inWord = data->inWord;
-	int index = countIndex(data);
-	int tmpWord = 0;
-	if (index == 0)
-	{
-		tmpWord = data->outData[index];
-	}
-	else
-	{
-		tmpWord = data->outData[index];
-	}
+	int controlChannel = 0b11;
+    int word = getLastWord();
 
-	tmpWord &= 0xFE0FFFFF;
+	word &= 0xFE0FFFFF;
 
 	inWord &= 0b11111;
 	inWord <<= 20;
 
-	tmpWord |= address;
-	tmpWord |= inWord;
-	tmpWord |= sWord;
+	word |= controlChannel;
+	word |= inWord;
+	word |= sWord;
 
-	data->outData[index] = tmpWord;
+    return word;
 }
 
 void clearWord()

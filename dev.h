@@ -9,11 +9,14 @@
 
 #define OUT_WORDS_COUNT 10
 
+typedef unsigned int uint;
+typedef unsigned short ushort;
+
 struct ESDataExchangeStruct
 {
-	unsigned short inWord;
-	unsigned int outWords[WORDS_COUNT]; 
-	bool isOverflow; 		
+	ushort inWord;
+	uint outWords[WORDS_COUNT]; 
+	int errorCode	
 };
 
 const int RM_EM_CTL_CODE_ADD_FAX = __DIOTF(_DCMD_MISC, EM_CTL_CODE_ADD_FAX, ESDataExchangeStruct);
